@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Clientes con Firebase</title>
+    <title>Gestión de Clientes con Autenticación</title>
     <style>
         :root {
             --primary: #2563eb;
@@ -27,26 +27,67 @@
             padding: 20px;
             display: flex;
             justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
         }
 
-        .container {
+        /* PANTALLA DE LOGUEO */
+        .login-container {
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .btn-google {
+            background-color: white;
+            color: #1f2937;
+            border: 1px solid var(--border);
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: background-color 0.2s, box-shadow 0.2s;
+            margin: 20px auto 0 auto;
+            width: 100%;
+        }
+
+        .btn-google:hover {
+            background-color: #f9fafb;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .btn-google img {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* PANTALLA PRINCIPAL DE LA APLICACIÓN */
+        .app-container {
             max-width: 1000px;
             width: 100%;
             position: relative;
-            padding-top: 40px;
+            padding-top: 50px;
+            display: none; /* Se muestra solo tras el Login */
         }
 
-        h1, h2 {
-            color: #0f172a;
-            margin-bottom: 20px;
-        }
-
-        .btn-historial-top {
+        .top-bar {
             position: absolute;
             top: 0;
             right: 0;
-            background-color: #0f172a;
-            color: white;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-top {
             padding: 10px 16px;
             border-radius: 8px;
             font-weight: 600;
@@ -54,9 +95,13 @@
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             cursor: pointer;
             border: none;
+            color: white;
         }
 
+        .btn-historial-top { background-color: #0f172a; }
         .btn-historial-top:hover { background-color: #1e293b; }
+        .btn-logout { background-color: var(--danger); }
+        .btn-logout:hover { background-color: var(--danger-hover); }
 
         .grid {
             display: grid;
@@ -66,7 +111,8 @@
 
         @media (max-width: 768px) {
             .grid { grid-template-columns: 1fr; }
-            .btn-historial-top { position: relative; width: 100%; margin-bottom: 20px; text-align: center; }
+            .top-bar { position: relative; width: 100%; margin-bottom: 20px; justify-content: stretch; }
+            .btn-top { flex: 1; text-align: center; }
         }
 
         .card {
@@ -119,7 +165,6 @@
         .btn-success:hover { background: var(--success-hover); }
         .btn-warning { background: var(--warning); color: white; }
         .btn-danger { background: var(--danger); color: white; }
-        .btn-danger:hover { background: var(--danger-hover); }
 
         .search-box {
             background: #f1f5f9;
@@ -134,13 +179,8 @@
             font-size: 14px;
         }
 
-        th, td {
-            padding: 12px;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
+        th, td { padding: 12px; border-bottom: 1px solid #e2e8f0; }
         th { background: #f8fafc; font-weight: 600; }
-
         .actions { display: flex; gap: 6px; }
         .actions button { padding: 6px 10px; font-size: 12px; }
 
@@ -182,12 +222,27 @@
 </head>
 <body>
 
-<div class="container">
-    <button class="btn-historial-top" id="btn-abrir-historial">
-        📋 Historial de Eliminados <span class="badge" id="contador-historial">0</span>
-    </button>
+<div class="login-container" id="vista-login">
+    <div class="card">
+        <h2>🔒 Control de Acceso</h2>
+        <p style="color: #64748b; font-size: 14px;">Inicia sesión con tu cuenta de Google para acceder al sistema de gestión de clientes.</p>
+        
+        <button class="btn-google" id="btn-login-google">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google Logo">
+            Iniciar sesión con Google
+        </button>
+    </div>
+</div>
 
-    <h1 style="text-align: center;">🗃️ Gestión de Clientes (Firebase)</h1>
+<div class="app-container" id="vista-app">
+    <div class="top-bar">
+        <button class="btn-top btn-historial-top" id="btn-abrir-historial">
+            📋 Historial <span class="badge" id="contador-historial">0</span>
+        </button>
+        <button class="btn-top btn-logout" id="btn-cerrar-sesion">🚪 Salir</button>
+    </div>
+
+    <h1 style="text-align: center; margin-top: 0;" id="bienvenida-usuario">🗃️ Gestión de Clientes</h1>
 
     <div class="grid">
         <div>
@@ -233,8 +288,7 @@
                             </tr>
                         </thead>
                         <tbody id="tabla-clientes">
-                            <tr><td colspan="4" style="text-align:center;">Cargando clientes desde Firebase...</td></tr>
-                        </tbody>
+                            </tbody>
                     </table>
                 </div>
             </div>
@@ -273,19 +327,13 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
     import { 
-        getFirestore, 
-        collection, 
-        addDoc, 
-        getDocs, 
-        doc, 
-        updateDoc, 
-        deleteDoc, 
-        onSnapshot,
-        query,
-        orderBy
+        getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, query, orderBy 
     } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+    import { 
+        getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged 
+    } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
 
-    // Tu configuración de Firebase proporcionada
+    // Configuración de tu proyecto Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyDMBkINBOfkh0NehUG3zSu7U--1yqNZ7wc",
         authDomain: "sinergiadev-8d03e.firebaseapp.com",
@@ -296,36 +344,80 @@
         measurementId: "G-F249ZWQJV6"
     };
 
-    // Inicializar Firebase y Firestore
+    // Inicializar servicios
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const auth = getAuth(app);
+    const googleProvider = new GoogleAuthProvider();
 
-    // Referencias de colecciones en Firebase
+    // Colecciones de la BD
     const clientesRef = collection(db, "clientes");
     const historialRef = collection(db, "historial");
 
-    // Arrays en memoria local para búsquedas rápidas
     let listaClientes = [];
-    let listaHistorial = [];
+    let unsubClientes = null;
+    let unsubHistorial = null;
 
-    // --- ESCUCHAR CAMBIOS EN TIEMPO REAL (Firestore -> Interfaz) ---
-    onSnapshot(clientesRef, (snapshot) => {
-        listaClientes = [];
-        snapshot.forEach((doc) => {
-            listaClientes.push({ id: doc.id, ...doc.data() });
-        });
-        renderizarClientes(listaClientes);
+    // --- OBSERVADOR DE ESTADO DE AUTENTICACIÓN ---
+    // Determina qué pantalla mostrar según si el usuario está logueado o no
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            // Usuario Autenticado
+            document.getElementById('vista-login').style.display = 'none';
+            document.getElementById('vista-app').style.display = 'block';
+            document.body.style.alignItems = 'flex-start'; // Ajuste estético de layout
+            document.getElementById('bienvenida-usuario').innerText = `🗃️ Panel de ${user.displayName || 'Clientes'}`;
+            
+            // Activar las escuchas de la base de datos en tiempo real
+            activarEscuchasBD();
+        } else {
+            // Usuario Desconectado
+            document.getElementById('vista-app').style.display = 'none';
+            document.getElementById('vista-login').style.display = 'flex';
+            document.body.style.alignItems = 'center';
+            
+            // Apagar las escuchas de datos por seguridad si se cierra sesión
+            if(unsubClientes) unsubClientes();
+            if(unsubHistorial) unsubHistorial();
+        }
     });
 
-    onSnapshot(query(historialRef, orderBy("fechaBorradoRaw", "desc")), (snapshot) => {
-        listaHistorial = [];
-        snapshot.forEach((doc) => {
-            listaHistorial.push({ id: doc.id, ...doc.data() });
-        });
-        renderizarHistorial(listaHistorial);
-    });
+    // --- FUNCIONES DE ACCESO (AUTH) ---
+    async function loginConGoogle() {
+        try {
+            await signInWithPopup(auth, googleProvider);
+        } catch (error) {
+            console.error("Error al autenticar con Google:", error);
+            alert("No se pudo iniciar sesión. Verifica la consola o las reglas de Firebase Auth.");
+        }
+    }
 
-    // --- ACCIONES DE GUARDAR / ACTUALIZAR ---
+    async function cerrarSesion() {
+        if(confirm("¿Seguro que deseas salir de la aplicación?")) {
+            await signOut(auth);
+        }
+    }
+
+    // --- CONEXIÓN DE BASE DE DATOS ---
+    function activarEscuchasBD() {
+        unsubClientes = onSnapshot(clientesRef, (snapshot) => {
+            listaClientes = [];
+            snapshot.forEach((doc) => {
+                listaClientes.push({ id: doc.id, ...doc.data() });
+            });
+            renderizarClientes(listaClientes);
+        });
+
+        unsubHistorial = onSnapshot(query(historialRef, orderBy("fechaBorradoRaw", "desc")), (snapshot) => {
+            let listaHistorial = [];
+            snapshot.forEach((doc) => {
+                listaHistorial.push({ id: doc.id, ...doc.data() });
+            });
+            renderizarHistorial(listaHistorial);
+        });
+    }
+
+    // --- OPERACIONES CRUD ---
     async function guardarCliente() {
         const idInput = document.getElementById('edit-id').value;
         const nombre = document.getElementById('nombre').value.trim();
@@ -338,42 +430,28 @@
         }
 
         if (idInput === "") {
-            // Guardar nuevo en Firebase
             await addDoc(clientesRef, { nombre, telefono, email });
         } else {
-            // Actualizar existente en Firebase
-            const docEspecifico = doc(db, "clientes", idInput);
-            await updateDoc(docEspecifico, { nombre, telefono, email });
+            await updateDoc(doc(db, "clientes", idInput), { nombre, telefono, email });
             cancelarEdicion();
         }
         limpiarFormulario();
     }
 
-    // --- ELIMINAR Y PASAR AL HISTORIAL ---
     async function eliminarCliente(id, nombre, telefono, email) {
         if (confirm(`¿Seguro que deseas eliminar a ${nombre}? Se archivará en el historial.`)) {
             const ahora = new Date();
-            const fechaFormateada = ahora.toLocaleDateString() + ' ' + ahora.toLocaleTimeString();
-
-            // 1. Agregar al historial en Firebase
             await addDoc(historialRef, {
-                nombre: nombre,
-                telefono: telefono,
-                email: email,
-                fechaBorrado: fechaFormateada,
-                fechaBorradoRaw: ahora.getTime() // Para ordenar correctamente
+                nombre, telefono, email,
+                fechaBorrado: ahora.toLocaleDateString() + ' ' + ahora.toLocaleTimeString(),
+                fechaBorradoRaw: ahora.getTime()
             });
-
-            // 2. Eliminar de la lista de activos en Firebase
             await deleteDoc(doc(db, "clientes", id));
-
-            if(document.getElementById('edit-id').value === id) {
-                cancelarEdicion();
-            }
+            if(document.getElementById('edit-id').value === id) cancelarEdicion();
         }
     }
 
-    // --- BUSCADOR EN TIEMPO REAL ---
+    // --- BUSCADOR ---
     document.getElementById('buscador').addEventListener('input', (e) => {
         const termino = e.target.value.toLowerCase();
         const filtrados = listaClientes.filter(c => 
@@ -384,7 +462,7 @@
         renderizarClientes(filtrados);
     });
 
-    // --- RENDERIZADO DE TABLAS ---
+    // --- INTERFAZ / RENDER ---
     function renderizarClientes(datos) {
         const tbody = document.getElementById('tabla-clientes');
         tbody.innerHTML = '';
@@ -406,16 +484,13 @@
             tbody.appendChild(tr);
         });
 
-        // Asignar eventos dinámicos a botones
         document.querySelectorAll('.btn-editar').forEach(btn => {
             btn.addEventListener('click', () => prepararEditar(btn.getAttribute('data-id')));
         });
         document.querySelectorAll('.btn-borrar').forEach(btn => {
             btn.addEventListener('click', () => eliminarCliente(
-                btn.getAttribute('data-id'),
-                btn.getAttribute('data-nombre'),
-                btn.getAttribute('data-telefono'),
-                btn.getAttribute('data-email')
+                btn.getAttribute('data-id'), btn.getAttribute('data-nombre'),
+                btn.getAttribute('data-telefono'), btn.getAttribute('data-email')
             ));
         });
     }
@@ -425,27 +500,19 @@
         tbody.innerHTML = '';
         datos.forEach(c => {
             const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${c.nombre}</td>
-                <td>${c.telefono}</td>
-                <td>${c.email}</td>
-                <td style="color:var(--danger); font-weight:500;">${c.fechaBorrado}</td>
-            `;
+            tr.innerHTML = `<td>${c.nombre}</td><td>${c.telefono}</td><td>${c.email}</td><td style="color:var(--danger); font-weight:500;">${c.fechaBorrado}</td>`;
             tbody.appendChild(tr);
         });
         document.getElementById('contador-historial').innerText = datos.length;
     }
 
-    // --- FUNCIONES AUXILIARES ---
     function prepararEditar(id) {
         const cliente = listaClientes.find(c => c.id === id);
         if (!cliente) return;
-
         document.getElementById('edit-id').value = cliente.id;
         document.getElementById('nombre').value = cliente.nombre;
         document.getElementById('telefono').value = cliente.telefono;
         document.getElementById('email').value = cliente.email;
-
         document.getElementById('form-title').innerText = "Editar Cliente";
         document.getElementById('btn-guardar').innerText = "Actualizar Datos";
         document.getElementById('btn-guardar').className = "btn-success btn-block";
@@ -467,7 +534,9 @@
         document.getElementById('email').value = "";
     }
 
-    // Vinculación de funciones a la ventana modal e interfaz
+    // Mapeo de eventos del DOM
+    document.getElementById('btn-login-google').addEventListener('click', loginConGoogle);
+    document.getElementById('btn-cerrar-sesion').addEventListener('click', cerrarSesion);
     document.getElementById('btn-guardar').addEventListener('click', guardarCliente);
     document.getElementById('btn-cancelar').addEventListener('click', cancelarEdicion);
     document.getElementById('btn-abrir-historial').addEventListener('click', () => document.getElementById('modal-historial').classList.add('open'));
