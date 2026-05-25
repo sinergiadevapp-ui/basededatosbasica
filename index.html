@@ -3,323 +3,254 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Clientes con Autenticación</title>
+    <title>SinergiaDev | Business Suite</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #2563eb;
-            --primary-hover: #1d4ed8;
-            --success: #16a34a;
-            --success-hover: #15803d;
-            --danger: #dc2626;
-            --danger-hover: #b91c1c;
-            --warning: #ea580c;
-            --bg: #f8fafc;
-            --card: #ffffff;
-            --text: #334155;
-            --border: #cbd5e1;
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --bg-deep: #0f172a;
+            --bg-card: #1e293b;
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --danger: #f43f5e;
+            --success: #10b981;
+            --border: #334155;
         }
 
+        * { box-sizing: border-box; transition: all 0.2s ease; }
+
         body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
             margin: 0;
-            padding: 20px;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-deep);
+            color: var(--text-main);
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            box-sizing: border-box;
+            overflow-x: hidden;
         }
 
-        /* PANTALLA DE LOGUEO */
-        .login-container {
-            max-width: 400px;
+        /* FONDO PROFESIONAL DINÁMICO */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.1) 0%, transparent 40%),
+                        radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.05) 0%, transparent 40%);
+            z-index: -1;
+        }
+
+        /* PANTALLA DE INICIO (LOGIN) */
+        #vista-login {
             width: 100%;
+            max-width: 450px;
+            padding: 20px;
             text-align: center;
-            display: flex;
-            flex-direction: column;
+        }
+
+        .login-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            padding: 48px;
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+        }
+
+        .logo-placeholder {
+            width: 64px; height: 64px;
+            background: var(--primary);
+            border-radius: 16px;
+            margin: 0 auto 24px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 24px;
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
         }
 
         .btn-google {
-            background-color: white;
+            background: white;
             color: #1f2937;
-            border: 1px solid var(--border);
-            padding: 12px 24px;
-            border-radius: 8px;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 12px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            transition: background-color 0.2s, box-shadow 0.2s;
-            margin: 20px auto 0 auto;
+            display: flex; align-items: center; justify-content: center; gap: 12px;
+            width: 100%; margin-top: 32px;
+        }
+
+        .btn-google:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.2); }
+
+        /* VISTA PRINCIPAL (DASHBOARD) */
+        #vista-app {
+            display: none;
             width: 100%;
+            max-width: 1200px;
+            padding: 40px 20px;
+            animation: fadeIn 0.5s ease;
         }
 
-        .btn-google:hover {
-            background-color: #f9fafb;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .navbar {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 40px;
         }
 
-        .btn-google img {
-            width: 20px;
-            height: 20px;
-        }
+        .user-info { display: flex; align-items: center; gap: 15px; }
+        .user-img { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--primary); }
 
-        /* PANTALLA PRINCIPAL DE LA APLICACIÓN */
-        .app-container {
-            max-width: 1000px;
-            width: 100%;
-            position: relative;
-            padding-top: 50px;
-            display: none; /* Se muestra solo tras el Login */
-        }
-
-        .top-bar {
-            position: absolute;
-            top: 0;
-            right: 0;
-            display: flex;
-            gap: 10px;
-        }
-
-        .btn-top {
-            padding: 10px 16px;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 13px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            cursor: pointer;
-            border: none;
-            color: white;
-        }
-
-        .btn-historial-top { background-color: #0f172a; }
-        .btn-historial-top:hover { background-color: #1e293b; }
-        .btn-logout { background-color: var(--danger); }
-        .btn-logout:hover { background-color: var(--danger-hover); }
-
-        .grid {
+        .dashboard-grid {
             display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 20px;
+            grid-template-columns: 350px 1fr;
+            gap: 30px;
         }
 
-        @media (max-width: 768px) {
-            .grid { grid-template-columns: 1fr; }
-            .top-bar { position: relative; width: 100%; margin-bottom: 20px; justify-content: stretch; }
-            .btn-top { flex: 1; text-align: center; }
-        }
+        @media (max-width: 900px) { .dashboard-grid { grid-template-columns: 1fr; } }
 
-        .card {
-            background: var(--card);
-            padding: 24px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-            border: 1px solid #e2e8f0;
-            margin-bottom: 20px;
-        }
-
-        .form-group { margin-bottom: 15px; }
-
-        label {
-            display: block;
-            margin-bottom: 6px;
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        input[type="text"], input[type="tel"], input[type="email"] {
-            width: 100%;
-            padding: 10px;
+        .glass-card {
+            background: var(--bg-card);
             border: 1px solid var(--border);
-            border-radius: 6px;
-            box-sizing: border-box;
-            font-size: 14px;
+            border-radius: 20px;
+            padding: 28px;
         }
 
-        input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        h2 { font-size: 1.2rem; margin-top: 0; margin-bottom: 20px; color: var(--text-main); }
+
+        /* FORMULARIO */
+        .input-group { margin-bottom: 18px; }
+        label { display: block; font-size: 0.85rem; color: var(--text-dim); margin-bottom: 6px; }
+        input {
+            width: 100%; background: #0f172a; border: 1px solid var(--border);
+            padding: 12px; border-radius: 10px; color: white; font-size: 1rem;
         }
+        input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99,102,241,0.2); }
 
-        button {
-            padding: 10px 16px;
-            border: none;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
+        .btn {
+            padding: 12px 20px; border-radius: 10px; font-weight: 600; cursor: pointer; border: none;
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.9rem;
         }
+        .btn-primary { background: var(--primary); color: white; width: 100%; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-dim); }
+        .btn-outline:hover { background: var(--border); color: white; }
 
-        .btn-block { width: 100%; }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: var(--primary-hover); }
-        .btn-success { background: var(--success); color: white; }
-        .btn-success:hover { background: var(--success-hover); }
-        .btn-warning { background: var(--warning); color: white; }
-        .btn-danger { background: var(--danger); color: white; }
+        /* TABLA PRO */
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { text-align: left; padding: 16px; color: var(--text-dim); font-size: 0.8rem; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+        td { padding: 16px; border-bottom: 1px solid var(--border); font-size: 0.95rem; }
+        tr:hover { background: rgba(255,255,255,0.02); }
 
-        .search-box {
-            background: #f1f5f9;
-            border: 1px solid var(--border);
-            margin-bottom: 15px;
+        .search-bar { margin-bottom: 20px; position: relative; }
+        .search-bar input { padding-left: 40px; background: #0f172a url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="%2364748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>') no-repeat 12px center; }
+
+        .badge { background: var(--danger); padding: 2px 8px; border-radius: 20px; font-size: 0.7rem; margin-left: 5px; }
+
+        /* MODAL */
+        .modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 1000;
         }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: left;
-            font-size: 14px;
-        }
-
-        th, td { padding: 12px; border-bottom: 1px solid #e2e8f0; }
-        th { background: #f8fafc; font-weight: 600; }
-        .actions { display: flex; gap: 6px; }
-        .actions button { padding: 6px 10px; font-size: 12px; }
-
-        .badge {
-            background: var(--danger);
-            color: white;
-            padding: 2px 6px;
-            border-radius: 50%;
-            font-size: 12px;
-            margin-left: 5px;
-        }
-
-        /* Ventana Modal */
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(4px);
-            display: flex; justify-content: center; align-items: center;
-            z-index: 1000;
-            visibility: hidden; opacity: 0;
-            transition: opacity 0.3s, visibility 0.3s;
-        }
-
-        .modal-overlay.open { visibility: visible; opacity: 1; }
-
-        .modal-window {
-            background: white; max-width: 750px; width: 90%; max-height: 80vh;
-            border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
-            display: flex; flex-direction: column; border-top: 4px solid var(--danger);
-        }
-
-        .modal-header { padding: 20px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
-        .modal-header h2 { margin: 0; font-size: 20px; }
-        .modal-body { padding: 20px; overflow-y: auto; }
-        .modal-footer { padding: 15px 20px; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; }
-        .history-table th { background: #f1f5f9; }
+        .modal-content { background: var(--bg-card); width: 90%; max-width: 800px; border-radius: 24px; padding: 32px; max-height: 80vh; overflow-y: auto; border: 1px solid var(--border); }
     </style>
 </head>
 <body>
 
-<div class="login-container" id="vista-login">
-    <div class="card">
-        <h2>🔒 Control de Acceso</h2>
-        <p style="color: #64748b; font-size: 14px;">Inicia sesión con tu cuenta de Google para acceder al sistema de gestión de clientes.</p>
+<div id="vista-login">
+    <div class="login-card">
+        <div class="logo-placeholder">S</div>
+        <h1 style="font-size: 1.8rem; margin-bottom: 8px;">Bienvenido</h1>
+        <p style="color: var(--text-dim); font-size: 0.9rem;">Accede a tu panel de gestión profesional.</p>
         
         <button class="btn-google" id="btn-login-google">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google Logo">
-            Iniciar sesión con Google
+            <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" width="20">
+            Continuar con Google
         </button>
     </div>
 </div>
 
-<div class="app-container" id="vista-app">
-    <div class="top-bar">
-        <button class="btn-top btn-historial-top" id="btn-abrir-historial">
-            📋 Historial <span class="badge" id="contador-historial">0</span>
-        </button>
-        <button class="btn-top btn-logout" id="btn-cerrar-sesion">🚪 Salir</button>
-    </div>
-
-    <h1 style="text-align: center; margin-top: 0;" id="bienvenida-usuario">🗃️ Gestión de Clientes</h1>
-
-    <div class="grid">
-        <div>
-            <div class="card">
-                <h2 id="form-title">Nuevo Cliente</h2>
-                <input type="hidden" id="edit-id">
-                
-                <div class="form-group">
-                    <label for="nombre">Nombre Completo:</label>
-                    <input type="text" id="nombre" placeholder="Juan Pérez" required>
-                </div>
-                <div class="form-group">
-                    <label for="telefono">Teléfono:</label>
-                    <input type="tel" id="telefono" placeholder="600123456" required>
-                </div>
-                <div class="form-group">
-                    <label for="email">Email:</label>
-                    <input type="email" id="email" placeholder="juan@correo.com" required>
-                </div>
-                
-                <div style="display:flex; gap:10px;">
-                    <button id="btn-guardar" class="btn-primary btn-block">Guardar Cliente</button>
-                    <button id="btn-cancelar" class="btn-danger" style="display:none;">Cancelar</button>
-                </div>
-            </div>
+<div id="vista-app">
+    <div class="navbar">
+        <div style="font-weight: bold; font-size: 1.2rem; display: flex; align-items: center; gap: 10px;">
+            <div style="width: 32px; height: 32px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px;">S</div>
+            Suite Manager
         </div>
-
-        <div>
-            <div class="card">
-                <h2>Base General de Clientes</h2>
-                <div class="form-group">
-                    <input type="text" id="buscador" class="search-box" placeholder="🔍 Buscar por nombre, teléfono o email...">
-                </div>
-
-                <div style="overflow-x:auto;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Nombre</th>
-                                <th>Teléfono</th>
-                                <th>Email</th>
-                                <th style="width:130px;">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabla-clientes">
-                            </tbody>
-                    </table>
-                </div>
-            </div>
+        <div class="user-info">
+            <span id="user-name" style="font-size: 0.9rem;">Cargando...</span>
+            <img id="user-avatar" class="user-img" src="" alt="Avatar">
+            <button class="btn btn-outline" id="btn-logout" style="padding: 8px 12px;">Salir</button>
         </div>
     </div>
-</div>
 
-<div class="modal-overlay" id="modal-historial">
-    <div class="modal-window">
-        <div class="modal-header">
-            <h2>📋 Registro Histórico de Eliminados</h2>
-            <button class="btn-danger" style="padding: 5px 10px; font-size: 12px;" id="btn-cerrar-historial-x">✕ Cerrar</button>
+    <div class="dashboard-grid">
+        <div class="glass-card">
+            <h2 id="form-title">Registro de Cliente</h2>
+            <input type="hidden" id="edit-id">
+            
+            <div class="input-group">
+                <label>Nombre del Cliente</label>
+                <input type="text" id="nombre" placeholder="Nombre completo">
+            </div>
+            <div class="input-group">
+                <label>Teléfono de Contacto</label>
+                <input type="tel" id="telefono" placeholder="+34 000 000 000">
+            </div>
+            <div class="input-group">
+                <label>Correo Electrónico</label>
+                <input type="email" id="email" placeholder="cliente@empresa.com">
+            </div>
+            
+            <button class="btn btn-primary" id="btn-guardar">Guardar Registro</button>
+            <button class="btn btn-outline" id="btn-cancelar" style="display:none; margin-top: 10px; width: 100%;">Cancelar Edición</button>
+            
+            <button class="btn btn-outline" id="btn-ver-historial" style="margin-top: 30px; width: 100%; border-style: dashed;">
+                Ver Historial de Bajas <span class="badge" id="count-historial">0</span>
+            </button>
         </div>
-        <div class="modal-body">
-            <div style="overflow-x:auto;">
-                <table class="history-table">
+
+        <div class="glass-card">
+            <div class="search-bar">
+                <input type="text" id="buscador" placeholder="Filtrar por nombre, teléfono o email...">
+            </div>
+            <div class="table-container">
+                <table>
                     <thead>
                         <tr>
-                            <th>Nombre</th>
-                            <th>Teléfono</th>
-                            <th>Email</th>
-                            <th>Fecha de Borrado</th>
+                            <th>Cliente</th>
+                            <th>Contacto</th>
+                            <th>Acciones</th>
                         </tr>
                     </thead>
-                    <tbody id="tabla-historial">
+                    <tbody id="tabla-clientes">
                         </tbody>
                 </table>
             </div>
         </div>
-        <div class="modal-footer">
-            <button class="btn-primary" id="btn-cerrar-historial">Entendido</button>
+    </div>
+</div>
+
+<div class="modal" id="modal-historial">
+    <div class="modal-content">
+        <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="margin:0;">Archivo de Bajas</h2>
+            <button class="btn btn-outline" id="btn-cerrar-historial">Cerrar</button>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Email</th>
+                        <th>Fecha Baja</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-historial">
+                    </tbody>
+            </table>
         </div>
     </div>
 </div>
@@ -327,13 +258,13 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
     import { 
-        getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, query, orderBy 
+        getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, query, where, orderBy 
     } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
     import { 
         getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged 
     } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
 
-    // Configuración de tu proyecto Firebase
+    // Configuración proporcionada
     const firebaseConfig = {
         apiKey: "AIzaSyDMBkINBOfkh0NehUG3zSu7U--1yqNZ7wc",
         authDomain: "sinergiadev-8d03e.firebaseapp.com",
@@ -344,207 +275,183 @@
         measurementId: "G-F249ZWQJV6"
     };
 
-    // Inicializar servicios
+    // Inicializar Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
-    const googleProvider = new GoogleAuthProvider();
+    const provider = new GoogleAuthProvider();
 
-    // Colecciones de la BD
-    const clientesRef = collection(db, "clientes");
-    const historialRef = collection(db, "historial");
+    let uidActual = null;
+    let unsubC = null;
+    let unsubH = null;
+    let cacheClientes = [];
 
-    let listaClientes = [];
-    let unsubClientes = null;
-    let unsubHistorial = null;
-
-    // --- OBSERVADOR DE ESTADO DE AUTENTICACIÓN ---
-    // Determina qué pantalla mostrar según si el usuario está logueado o no
+    // --- OBSERVADOR DE USUARIO (CONTROL DE FLUJO) ---
     onAuthStateChanged(auth, (user) => {
         if (user) {
-            // Usuario Autenticado
+            uidActual = user.uid;
             document.getElementById('vista-login').style.display = 'none';
             document.getElementById('vista-app').style.display = 'block';
-            document.body.style.alignItems = 'flex-start'; // Ajuste estético de layout
-            document.getElementById('bienvenida-usuario').innerText = `🗃️ Panel de ${user.displayName || 'Clientes'}`;
-            
-            // Activar las escuchas de la base de datos en tiempo real
-            activarEscuchasBD();
+            document.getElementById('user-name').innerText = user.displayName;
+            document.getElementById('user-avatar').src = user.photoURL;
+            activarSincronizacion();
         } else {
-            // Usuario Desconectado
+            uidActual = null;
             document.getElementById('vista-app').style.display = 'none';
-            document.getElementById('vista-login').style.display = 'flex';
-            document.body.style.alignItems = 'center';
-            
-            // Apagar las escuchas de datos por seguridad si se cierra sesión
-            if(unsubClientes) unsubClientes();
-            if(unsubHistorial) unsubHistorial();
+            document.getElementById('vista-login').style.display = 'block';
+            if(unsubC) unsubC();
+            if(unsubH) unsubH();
         }
     });
 
-    // --- FUNCIONES DE ACCESO (AUTH) ---
-    async function loginConGoogle() {
-        try {
-            await signInWithPopup(auth, googleProvider);
-        } catch (error) {
-            console.error("Error al autenticar con Google:", error);
-            alert("No se pudo iniciar sesión. Verifica la consola o las reglas de Firebase Auth.");
-        }
+    // --- SINCRONIZACIÓN PRIVADA (FILTRADO POR USER ID) ---
+    function activarSincronizacion() {
+        // Traer solo los clientes del usuario activo
+        const qC = query(collection(db, "clientes"), where("userId", "==", uidActual));
+        unsubC = onSnapshot(qC, (snap) => {
+            cacheClientes = [];
+            snap.forEach(d => cacheClientes.push({id: d.id, ...d.data()}));
+            renderizarClientes(cacheClientes);
+        }, (error) => console.error("Error en Snapshot Clientes: ", error));
+
+        // Traer solo el historial del usuario activo ordenado por fecha de borrado
+        const qH = query(collection(db, "historial"), where("userId", "==", uidActual), orderBy("fechaBorradoRaw", "desc"));
+        unsubH = onSnapshot(qH, (snap) => {
+            let hist = [];
+            snap.forEach(d => hist.push(d.data()));
+            renderizarHistorial(hist);
+        }, (error) => console.error("Error en Snapshot Historial: ", error));
     }
 
-    async function cerrarSesion() {
-        if(confirm("¿Seguro que deseas salir de la aplicación?")) {
-            await signOut(auth);
-        }
-    }
-
-    // --- CONEXIÓN DE BASE DE DATOS ---
-    function activarEscuchasBD() {
-        unsubClientes = onSnapshot(clientesRef, (snapshot) => {
-            listaClientes = [];
-            snapshot.forEach((doc) => {
-                listaClientes.push({ id: doc.id, ...doc.data() });
-            });
-            renderizarClientes(listaClientes);
-        });
-
-        unsubHistorial = onSnapshot(query(historialRef, orderBy("fechaBorradoRaw", "desc")), (snapshot) => {
-            let listaHistorial = [];
-            snapshot.forEach((doc) => {
-                listaHistorial.push({ id: doc.id, ...doc.data() });
-            });
-            renderizarHistorial(listaHistorial);
-        });
-    }
-
-    // --- OPERACIONES CRUD ---
-    async function guardarCliente() {
-        const idInput = document.getElementById('edit-id').value;
+    // --- CONTROL CRUD ---
+    async function guardar() {
+        const id = document.getElementById('edit-id').value;
         const nombre = document.getElementById('nombre').value.trim();
         const telefono = document.getElementById('telefono').value.trim();
         const email = document.getElementById('email').value.trim();
 
-        if (!nombre || !telefono || !email) {
-            alert("Por favor, rellene todos los campos.");
-            return;
-        }
+        if(!nombre || !telefono || !email) return alert("Por favor, completa todos los campos.");
 
-        if (idInput === "") {
-            await addDoc(clientesRef, { nombre, telefono, email });
-        } else {
-            await updateDoc(doc(db, "clientes", idInput), { nombre, telefono, email });
-            cancelarEdicion();
+        const data = { nombre, telefono, email, userId: uidActual };
+
+        try {
+            if(!id) {
+                await addDoc(collection(db, "clientes"), data);
+            } else {
+                await updateDoc(doc(db, "clientes", id), data);
+                cancelarEdicion();
+            }
+            limpiarFormulario();
+        } catch (e) {
+            alert("Error al guardar. Revisa tus reglas de Firestore.");
+            console.error(e);
         }
-        limpiarFormulario();
     }
 
-    async function eliminarCliente(id, nombre, telefono, email) {
-        if (confirm(`¿Seguro que deseas eliminar a ${nombre}? Se archivará en el historial.`)) {
+    async function eliminar(id, c) {
+        if(confirm(`¿Deseas dar de baja a ${c.nombre}? Se enviará al archivo histórico.`)) {
             const ahora = new Date();
-            await addDoc(historialRef, {
-                nombre, telefono, email,
-                fechaBorrado: ahora.toLocaleDateString() + ' ' + ahora.toLocaleTimeString(),
-                fechaBorradoRaw: ahora.getTime()
-            });
-            await deleteDoc(doc(db, "clientes", id));
-            if(document.getElementById('edit-id').value === id) cancelarEdicion();
+            try {
+                await addDoc(collection(db, "historial"), {
+                    nombre: c.nombre,
+                    telefono: c.telefono,
+                    email: c.email,
+                    fechaBorrado: ahora.toLocaleDateString() + ' ' + ahora.toLocaleTimeString(),
+                    fechaBorradoRaw: ahora.getTime(),
+                    userId: uidActual
+                });
+                await deleteDoc(doc(db, "clientes", id));
+            } catch (e) {
+                console.error("Error al eliminar:", e);
+            }
         }
     }
 
-    // --- BUSCADOR ---
-    document.getElementById('buscador').addEventListener('input', (e) => {
-        const termino = e.target.value.toLowerCase();
-        const filtrados = listaClientes.filter(c => 
-            c.nombre.toLowerCase().includes(termino) || 
-            c.telefono.toLowerCase().includes(termino) || 
-            c.email.toLowerCase().includes(termino)
-        );
-        renderizarClientes(filtrados);
-    });
-
-    // --- INTERFAZ / RENDER ---
-    function renderizarClientes(datos) {
-        const tbody = document.getElementById('tabla-clientes');
-        tbody.innerHTML = '';
-        if (datos.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#94a3b8;">No hay clientes registrados</td></tr>`;
+    // --- RENDERIZACIÓN DE INTERFAZ ---
+    function renderizarClientes(data) {
+        const t = document.getElementById('tabla-clientes');
+        if (data.length === 0) {
+            t.innerHTML = `<tr><td colspan="3" style="text-align:center; color: var(--text-dim); padding: 30px;">No tienes clientes en tu cartera.</td></tr>`;
             return;
         }
-        datos.forEach(c => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td><strong>${c.nombre}</strong></td>
-                <td>${c.telefono}</td>
-                <td>${c.email}</td>
-                <td class="actions">
-                    <button class="btn-warning btn-editar" data-id="${c.id}">Editar</button>
-                    <button class="btn-danger btn-borrar" data-id="${c.id}" data-nombre="${c.nombre}" data-telefono="${c.telefono}" data-email="${c.email}">Borrar</button>
+        t.innerHTML = data.map(c => `
+            <tr>
+                <td><div style="font-weight:600;">${c.nombre}</div><div style="font-size:0.75rem; color:var(--text-dim);">${c.email}</div></td>
+                <td><div style="font-size:0.85rem;">${c.telefono}</div></td>
+                <td>
+                    <button class="btn btn-outline" style="padding:5px 10px; font-size:11px;" onclick="prepararEdicion('${c.id}')">Editar</button>
+                    <button class="btn btn-outline" style="padding:5px 10px; font-size:11px; color:var(--danger);" onclick="eliminarClick('${c.id}')">Borrar</button>
                 </td>
-            `;
-            tbody.appendChild(tr);
-        });
-
-        document.querySelectorAll('.btn-editar').forEach(btn => {
-            btn.addEventListener('click', () => prepararEditar(btn.getAttribute('data-id')));
-        });
-        document.querySelectorAll('.btn-borrar').forEach(btn => {
-            btn.addEventListener('click', () => eliminarCliente(
-                btn.getAttribute('data-id'), btn.getAttribute('data-nombre'),
-                btn.getAttribute('data-telefono'), btn.getAttribute('data-email')
-            ));
-        });
+            </tr>
+        `).join('');
     }
 
-    function renderizarHistorial(datos) {
-        const tbody = document.getElementById('tabla-historial');
-        tbody.innerHTML = '';
-        datos.forEach(c => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `<td>${c.nombre}</td><td>${c.telefono}</td><td>${c.email}</td><td style="color:var(--danger); font-weight:500;">${c.fechaBorrado}</td>`;
-            tbody.appendChild(tr);
-        });
-        document.getElementById('contador-historial').innerText = datos.length;
+    function renderizarHistorial(data) {
+        document.getElementById('count-historial').innerText = data.length;
+        const t = document.getElementById('tabla-historial');
+        if (data.length === 0) {
+            t.innerHTML = `<tr><td colspan="3" style="text-align:center; color: var(--text-dim); padding: 20px;">Tu historial está vacío.</td></tr>`;
+            return;
+        }
+        t.innerHTML = data.map(c => `
+            <tr>
+                <td>${c.nombre}</td>
+                <td>${c.email}</td>
+                <td style="color:var(--text-dim); font-size:0.85rem;">${c.fechaBorrado}</td>
+            </tr>
+        `).join('');
     }
 
-    function prepararEditar(id) {
-        const cliente = listaClientes.find(c => c.id === id);
-        if (!cliente) return;
-        document.getElementById('edit-id').value = cliente.id;
-        document.getElementById('nombre').value = cliente.nombre;
-        document.getElementById('telefono').value = cliente.telefono;
-        document.getElementById('email').value = cliente.email;
-        document.getElementById('form-title').innerText = "Editar Cliente";
-        document.getElementById('btn-guardar').innerText = "Actualizar Datos";
-        document.getElementById('btn-guardar').className = "btn-success btn-block";
-        document.getElementById('btn-cancelar').style.display = "block";
-    }
+    // --- FUNCIONES INTERNAS GLOBALES (CONECTORES DE BOTONES) ---
+    window.prepararEdicion = (id) => {
+        const c = cacheClientes.find(x => x.id === id);
+        if(!c) return;
+        document.getElementById('edit-id').value = c.id;
+        document.getElementById('nombre').value = c.nombre;
+        document.getElementById('telefono').value = c.telefono;
+        document.getElementById('email').value = c.email;
+        document.getElementById('form-title').innerText = "Modificar Registro";
+        document.getElementById('btn-guardar').innerText = "Actualizar";
+        document.getElementById('btn-cancelar').style.display = 'block';
+    };
 
-    function cancelarEdicion() {
+    window.cancelarEdicion = () => {
         limpiarFormulario();
-        document.getElementById('form-title').innerText = "Nuevo Cliente";
-        document.getElementById('btn-guardar').innerText = "Guardar Cliente";
-        document.getElementById('btn-guardar').className = "btn-primary btn-block";
-        document.getElementById('btn-cancelar').style.display = "none";
-    }
+        document.getElementById('edit-id').value = "";
+        document.getElementById('form-title').innerText = "Registro de Cliente";
+        document.getElementById('btn-guardar').innerText = "Guardar Registro";
+        document.getElementById('btn-cancelar').style.display = 'none';
+    };
+
+    window.eliminarClick = (id) => {
+        const c = cacheClientes.find(x => x.id === id);
+        if(c) eliminar(id, c);
+    };
 
     function limpiarFormulario() {
-        document.getElementById('edit-id').value = "";
         document.getElementById('nombre').value = "";
         document.getElementById('telefono').value = "";
         document.getElementById('email').value = "";
     }
 
-    // Mapeo de eventos del DOM
-    document.getElementById('btn-login-google').addEventListener('click', loginConGoogle);
-    document.getElementById('btn-cerrar-sesion').addEventListener('click', cerrarSesion);
-    document.getElementById('btn-guardar').addEventListener('click', guardarCliente);
-    document.getElementById('btn-cancelar').addEventListener('click', cancelarEdicion);
-    document.getElementById('btn-abrir-historial').addEventListener('click', () => document.getElementById('modal-historial').classList.add('open'));
-    
-    const cerrarModal = () => document.getElementById('modal-historial').classList.remove('open');
-    document.getElementById('btn-cerrar-historial').addEventListener('click', cerrarModal);
-    document.getElementById('btn-cerrar-historial-x').addEventListener('click', cerrarModal);
-</script>
+    // --- MOTOR DEL BUSCADOR EN TIEMPO REAL ---
+    document.getElementById('buscador').addEventListener('input', (e) => {
+        const term = e.target.value.toLowerCase();
+        const filtrados = cacheClientes.filter(c => 
+            c.nombre.toLowerCase().includes(term) || 
+            c.email.toLowerCase().includes(term) || 
+            c.telefono.toLowerCase().includes(term)
+        );
+        renderizarClientes(filtrados);
+    });
 
+    // --- MAPEO DE INTERACCIONES DEL USUARIO ---
+    document.getElementById('btn-login-google').onclick = () => signInWithPopup(auth, provider).catch(e => alert("Error de Login: " + e.message));
+    document.getElementById('btn-logout').onclick = () => { if(confirm("¿Cerrar sesión?")) signOut(auth); };
+    document.getElementById('btn-guardar').onclick = guardar;
+    document.getElementById('btn-cancelar').onclick = window.cancelarEdicion;
+    document.getElementById('btn-ver-historial').onclick = () => document.getElementById('modal-historial').style.display = 'flex';
+    document.getElementById('btn-cerrar-historial').onclick = () => document.getElementById('modal-historial').style.display = 'none';
+</script>
 </body>
 </html>
