@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SinergiaDev | Business Suite</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --bg-deep: #0f172a;
+            --bg-card: #1e293b;
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --danger: #f43f5e;
+            --success: #10b981;
+            --border: #334155;
+        }
+
+        * { box-sizing: border-box; transition: all 0.2s ease; }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* FONDO PROFESIONAL DINÁMICO */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.1) 0%, transparent 40%),
+                        radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.05) 0%, transparent 40%);
+            z-index: -1;
+        }
+
+        /* PANTALLA DE INICIO (LOGIN) */
+        #vista-login {
+            width: 100%;
+            max-width: 450px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .login-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            padding: 48px;
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+        }
+
+        .logo-placeholder {
+            width: 64px; height: 64px;
+            background: var(--primary);
+            border-radius: 16px;
+            margin: 0 auto 24px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 24px;
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-google {
+            background: white;
+            color: #1f2937;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 12px;
+            width: 100%; margin-top: 32px;
+        }
+
+        .btn-google:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.2); }
+
+        /* VISTA PRINCIPAL (DASHBOARD) */
+        #vista-app {
+            display: none;
+            width: 100%;
+            max-width: 1200px;
+            padding: 40px 20px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .navbar {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .user-info { display: flex; align-items: center; gap: 15px; }
+        .user-img { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--primary); }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 900px) { .dashboard-grid { grid-template-columns: 1fr; } }
+
+        .glass-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 28px;
+        }
+
+        h2 { font-size: 1.2rem; margin-top: 0; margin-bottom: 20px; color: var(--text-main); }
+
+        /* FORMULARIO */
+        .input-group { margin-bottom: 18px; }
+        label { display: block; font-size: 0.85rem; color: var(--text-dim); margin-bottom: 6px; }
+        input {
+            width: 100%; background: #0f172a; border: 1px solid var(--border);
+            padding: 12px; border-radius: 10px; color: white; font-size: 1rem;
+        }
+        input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99,102,241,0.2); }
+
+        .btn {
+            padding: 12px 20px; border-radius: 10px; font-weight: 600; cursor: pointer; border: none;
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.9rem;
+        }
+        .btn-primary { background: var(--primary); color: white; width: 100%; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-dim); }
+        .btn-outline:hover { background: var(--border); color: white; }
+
+        /* TABLA PRO */
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { text-align: left; padding: 16px; color: var(--text-dim); font-size: 0.8rem; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+        td { padding: 16px; border-bottom: 1px solid var(--border); font-size: 0.95rem; }
+        tr:hover { background: rgba(255,255,255,0.02); }
+
+        .search-bar { margin-bottom: 20px; position: relative; }
+        .search-bar input { padding-left: 40px; background: #0f172a url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="%2364748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>') no-repeat 12px center; }
+
+        .badge { background: var(--danger); padding: 2px 8px; border-radius: 20px; font-size: 0.7rem; margin-left: 5px; }
+
+        /* MODAL */
+        .modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 1000;
+        }
+        .modal-content { background: var(--bg-card); width: 90%; max-width: 800px; border-radius: 24px; padding: 32px; max-height: 80vh; overflow-y: auto; border: 1px solid var(--border); }
+    </style>
+</head>
+<body>
+
+<div id="vista-login">
+    <div class="login-card">
+        <div class="logo-placeholder">S</div>
+        <h1 style="font-size: 1.8rem; margin-bottom: 8px;">Bienvenido</h1>
+        <p style="color: var(--text-dim); font-size: 0.9rem;">Accede a tu panel de gestión profesional.</p>
+        
+        <button class="btn-google" id="btn-login-google">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22c-.23-.67-.35-1.37-.35-2.09z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+            </svg>
+            Continuar con Google
+        </button>
+    </div>
+</div>
+
+<div id="vista-app">
+    <div class="navbar">
+        <div style="font-weight: bold; font-size: 1.2rem; display: flex; align-items: center; gap: 10px;">
+            <div style="width: 32px; height: 32px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px;">S</div>
+            Suite Manager
+        </div>
+        <div class="user-info">
+            <span id="user-name" style="font-size: 0.9rem;">Cargando...</span>
+            <img id="user-avatar" class="user-img" src="" alt="Avatar">
+            <button class="btn btn-outline" id="btn-logout" style="padding: 8px 12px;">Salir</button>
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+        <div class="glass-card">
+            <h2 id="form-title">Registro de Cliente</h2>
+            <input type="hidden" id="edit-id">
+            
+            <div class="input-group">
+                <label>Nombre del Cliente</label>
+                <input type="text" id="nombre" placeholder="Nombre completo">
+            </div>
+            <div class="input-group">
+                <label>Teléfono de Contacto</label>
+                <input type="tel" id="telefono" placeholder="+34 000 000 000">
+            </div>
+            <div class="input-group">
+                <label>Correo Electrónico</label>
+                <input type="email" id="email" placeholder="cliente@empresa.com">
+            </div>
+            
+            <button class="btn btn-primary" id="btn-guardar">Guardar Registro</button>
+            <button class="btn btn-outline" id="btn-cancelar" style="display:none; margin-top: 10px; width: 100%;">Cancelar Edición</button>
+            
+            <button class="btn btn-outline" id="btn-ver-historial" style="margin-top: 30px; width: 100%; border-style: dashed;">
+                Ver Historial de Bajas <span class="badge" id="count-historial">0</span>
+            </button>
+        </div>
+
+        <div class="glass-card">
+            <div class="search-bar">
+                <input type="text" id="buscador" placeholder="Filtrar por nombre, teléfono o email...">
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Cliente</th>
+                            <th>Contacto</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-clientes">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="modal-historial">
+    <div class="modal-content">
+        <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="margin:0;">Archivo de Bajas</h2>
+            <button class="btn btn-outline" id="btn-cerrar-historial">Cerrar</button>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Email</th>
+                        <th>Fecha Baja</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-historial">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+    import { 
+        getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, query, where, orderBy 
+    } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+    import { 
+        getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged 
+    } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+
+    // Tu configuración de Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyDMBkINBOfkh0NehUG3zSu7U--1yqNZ7wc",
+        authDomain: "sinergiadev-8d03e.firebaseapp.com",
+        projectId: "sinergiadev-8d03e",
+        storageBucket: "sinergiadev-8d03e.firebasestorage.app",
+        messagingSenderId: "703439872703",
+        appId: "1:703439872703:web:c60610ab6c7dbee41b1c0a",
+        measurementId: "G-F249ZWQJV6"
+    };
+
+    // Inicializar Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+
+    let uidActual = null;
+    let unsubC = null;
+    let unsubH = null;
+    let cacheClientes = [];
+
+    // --- OBSERVADOR DE USUARIO (CONTROL DE FLUJO) ---
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            uidActual = user.uid;
+            document.getElementById('vista-login').style.display = 'none';
+            document.getElementById('vista-app').style.display = 'block';
+            document.getElementById('user-name').innerText = user.displayName;
+            document.getElementById('user-avatar').src = user.photoURL;
+            activarSincronizacion();
+        } else {
+            uidActual = null;
+            document.getElementById('vista-app').style.display = 'none';
+            document.getElementById('vista-login').style.display = 'block';
+            if(unsubC) unsubC();
+            if(unsubH) unsubH();
+        }
+    });
+
+    // --- SINCRONIZACIÓN PRIVADA (FILTRADO POR USER ID) ---
+    function activarSincronizacion() {
+        // Traer solo los clientes del usuario activo
+        const qC = query(collection(db, "clientes"), where("userId", "==", uidActual));
+        unsubC = onSnapshot(qC, (snap) => {
+            cacheClientes = [];
+            snap.forEach(d => cacheClientes.push({id: d.id, ...d.data()}));
+            renderizarClientes(cacheClientes);
+        }, (error) => console.error("Error en Snapshot Clientes: ", error));
+
+        // Traer solo el historial del usuario activo ordenado por fecha de borrado
+        const qH = query(collection(db, "historial"), where("userId", "==", uidActual), orderBy("fechaBorradoRaw", "desc"));
+        unsubH = onSnapshot(qH, (snap) => {
+            let hist = [];
+            snap.forEach(d => hist.push(d.data()));
+            renderizarHistorial(hist);
+        }, (error) => console.error("Error en Snapshot Historial: ", error));
+    }
+
+    // --- CONTROL CRUD ---
+    async function guardar() {
+        const id = document.getElementById('edit-id').value;
+        const nombre = document.getElementById('nombre').value.trim();
+        const telefono = document.getElementById('telefono').value.trim();
+        const email = document.getElementById('email').value.trim();
+
+        if(!nombre || !telefono || !email) return alert("Por favor, completa todos los campos.");
+
+        const data = { nombre, telefono, email, userId: uidActual };
+
+        try {
+            if(!id) {
+                await addDoc(collection(db, "clientes"), data);
+            } else {
+                await updateDoc(doc(db, "clientes", id), data);
+                cancelarEdicion();
+            }
+            limpiarFormulario();
+        } catch (e) {
+            alert("Error al guardar. Revisa tus reglas de Firestore.");
+            console.error(e);
+        }
+    }
+
+    async function eliminar(id, c) {
+        if(confirm(`¿Deseas dar de baja a ${c.nombre}? Se enviará al archivo histórico.`)) {
+            const ahora = new Date();
+            try {
+                await addDoc(collection(db, "historial"), {
+                    nombre: c.nombre,
+                    telefono: c.telefono,
+                    email: c.email,
+                    fechaBorrado: ahora.toLocaleDateString() + ' ' + ahora.toLocaleTimeString(),
+                    fechaBorradoRaw: ahora.getTime(),
+                    userId: uidActual
+                });
+                await deleteDoc(doc(db, "clientes", id));
+            } catch (e) {
+                console.error("Error al eliminar:", e);
+            }
+        }
+    }
+
+    // --- RENDERIZACIÓN DE INTERFAZ ---
+    function renderizarClientes(data) {
+        const t = document.getElementById('tabla-clientes');
+        if (data.length === 0) {
+            t.innerHTML = `<tr><td colspan="3" style="text-align:center; color: var(--text-dim); padding: 30px;">No tienes clientes en tu cartera.</td></tr>`;
+            return;
+        }
+        t.innerHTML = data.map(c => `
+            <tr>
+                <td><div style="font-weight:600;">${c.nombre}</div><div style="font-size:0.75rem; color:var(--text-dim);">${c.email}</div></td>
+                <td><div style="font-size:0.85rem;">${c.telefono}</div></td>
+                <td>
+                    <button class="btn btn-outline" style="padding:5px 10px; font-size:11px;" onclick="prepararEdicion('${c.id}')">Editar</button>
+                    <button class="btn btn-outline" style="padding:5px 10px; font-size:11px; color:var(--danger);" onclick="eliminarClick('${c.id}')">Borrar</button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function renderizarHistorial(data) {
+        document.getElementById('count-historial').innerText = data.length;
+        const t = document.getElementById('tabla-historial');
+        if (data.length === 0) {
+            t.innerHTML = `<tr><td colspan="3" style="text-align:center; color: var(--text-dim); padding: 20px;">Tu historial está vacío.</td></tr>`;
+            return;
+        }
+        t.innerHTML = data.map(c => `
+            <tr>
+                <td>${c.nombre}</td>
+                <td>${c.email}</td>
+                <td style="color:var(--text-dim); font-size:0.85rem;">${c.fechaBorrado}</td>
+            </tr>
+        `).join('');
+    }
+
+    // --- FUNCIONES INTERNAS GLOBALES (CONECTORES DE BOTONES) ---
+    window.prepararEdicion = (id) => {
+        const c = cacheClientes.find(x => x.id === id);
+        if(!c) return;
+        document.getElementById('edit-id').value = c.id;
+        document.getElementById('nombre').value = c.nombre;
+        document.getElementById('telefono').value = c.telefono;
+        document.getElementById('email').value = c.email;
+        document.getElementById('form-title').innerText = "Modificar Registro";
+        document.getElementById('btn-guardar').innerText = "Actualizar";
+        document.getElementById('btn-cancelar').style.display = 'block';
+    };
+
+    window.cancelarEdicion = () => {
+        limpiarFormulario();
+        document.getElementById('edit-id').value = "";
+        document.getElementById('form-title').innerText = "Registro de Cliente";
+        document.getElementById('btn-guardar').innerText = "Guardar Registro";
+        document.getElementById('btn-cancelar').style.display = 'none';
+    };
+
+    window.eliminarClick = (id) => {
+        const c = cacheClientes.find(x => x.id === id);
+        if(c) eliminar(id, c);
+    };
+
+    function limpiarFormulario() {
+        document.getElementById('nombre').value = "";
+        document.getElementById('telefono').value = "";
+        document.getElementById('email').value = "";
+    }
+
+    // --- MOTOR DEL BUSCADOR EN TIEMPO REAL ---
+    document.getElementById('buscador').addEventListener('input', (e) => {
+        const term = e.target.value.toLowerCase();
+        const filtrados = cacheClientes.filter(c => 
+            c.nombre.toLowerCase().includes(term) || 
+            c.email.toLowerCase().includes(term) || 
+            c.telefono.toLowerCase().includes(term)
+        );
+        renderizarClientes(filtrados);
+    });
+
+    // --- MAPEO DE INTERACCIONES DEL USUARIO ---
+    document.getElementById('btn-login-google').onclick = () => signInWithPopup(auth, provider).catch(e => alert("Error de Login: " + e.message));
+    document.getElementById('btn-logout').onclick = () => { if(confirm("¿Cerrar sesión?")) signOut(auth); };
+    document.getElementById('btn-guardar').onclick = guardar;
+    document.getElementById('btn-cancelar').onclick = window.cancelarEdicion;
+    document.getElementById('btn-ver-historial').onclick = () => document.getElementById('modal-historial').style.display = 'flex';
+    document.getElementById('btn-cerrar-historial').onclick = () => document.getElementById('modal-historial').style.display = 'none';
+</script>
+</body>
+</html>
